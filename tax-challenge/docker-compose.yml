@@ -1,0 +1,21 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    ports:
+      - "3007:3007"
+    environment:
+      - NODE_ENV=development
+      - PORT=3007
+      - JWT_SECRET=your-secret-key
+      - JWT_EXPIRATION=1h
+    volumes:
+      - .:/app
+      - /app/node_modules
+    command: npm run dev
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "http://localhost:${PORT:-3007}/api/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3 
