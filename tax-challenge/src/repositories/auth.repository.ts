@@ -1,24 +1,31 @@
-import { db } from '../db/database';
 import { User } from '../types/user';
-import { IAuthRepository } from '../interfaces/auth.interface';
+import { AuthRepository } from '../services/auth.service';
 
-export class InMemoryAuthRepository implements IAuthRepository {
-  private users = db.users;
+export class InMemoryAuthRepository implements AuthRepository {
+  private users: User[] = [
+    {
+      id: '1',
+      username: 'admin',
+      email: 'admin@example.com',
+      password: 'admin123', // In a real app, this would be hashed
+      role: 'ADMIN',
+      createdAt: new Date(),
+      updatedAt: new Date()
+    }
+  ];
 
   async findByUsername(username: string): Promise<User | null> {
-    const user = this.users.find(u => u.username === username);
-    return user || null;
+    return this.users.find(user => user.username === username) || null;
   }
 
   async validatePassword(user: User, password: string): Promise<boolean> {
-    // For demo purposes, always return true
-    return true;
+    return user.password === password; // In a real app, use bcrypt to compare hashed passwords
   }
 
-  async createUser(user: Omit<User, 'id' | 'createdAt' | 'updatedAt'>): Promise<User> {
+  async createUser(userData: Omit<User, 'id'>): Promise<User> {
     const newUser: User = {
-      ...user,
-      id: String(this.users.length + 1),
+      id: Math.random().toString(36).substr(2, 9),
+      ...userData,
       createdAt: new Date(),
       updatedAt: new Date()
     };

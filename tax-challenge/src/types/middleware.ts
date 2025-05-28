@@ -1,15 +1,15 @@
 import { Request, Response, NextFunction } from 'express';
 
-export interface IMiddleware {
+export type Middleware = {
   (req: Request, res: Response, next: NextFunction): Promise<void> | void;
 }
 
-export interface IAuthMiddleware extends IMiddleware {
+export type AuthMiddleware = Middleware & {
   validateToken(req: Request, res: Response, next: NextFunction): Promise<void>;
-  validateRole(role: string): IMiddleware;
+  validateRole(role: string): Middleware;
 }
 
-export interface IErrorMiddleware extends IMiddleware {
+export type ErrorMiddleware = Middleware & {
   handleError(error: Error, req: Request, res: Response, next: NextFunction): void;
   notFound(req: Request, res: Response, next: NextFunction): void;
 } 

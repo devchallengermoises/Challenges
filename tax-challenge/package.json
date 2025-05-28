@@ -1,13 +1,13 @@
 {
   "name": "tax-challenge",
   "version": "1.0.0",
-  "description": "A robust API service for tax calculations and management",
+  "description": "Tax Challenge API",
   "main": "dist/index.js",
   "scripts": {
     "start": "node dist/index.js",
-    "dev": "ts-node src/index.ts",
+    "dev": "ts-node-dev --respawn --transpile-only src/index.ts",
     "build": "tsc",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "keywords": [
     "tax",
@@ -19,23 +19,26 @@
   "author": "Moises Garcia Levy",
   "license": "MIT",
   "dependencies": {
-    "@types/bcryptjs": "^2.4.6",
-    "@types/cors": "^2.8.18",
-    "@types/express": "^4.17.21",
-    "@types/jsonwebtoken": "^9.0.9",
-    "@types/uuid": "^10.0.0",
-    "bcryptjs": "^3.0.2",
+    "bcryptjs": "^2.4.3",
     "cors": "^2.8.5",
-    "dotenv": "^16.5.0",
-    "express": "^4.18.3",
-    "express-rate-limit": "^7.5.0",
-    "helmet": "^8.1.0",
-    "jsonwebtoken": "^9.0.2",
-    "ts-node": "^10.9.2",
-    "typescript": "^5.3.3",
-    "uuid": "^11.1.0"
+    "dotenv": "^16.0.3",
+    "express": "^4.18.2",
+    "express-rate-limit": "^7.1.5",
+    "helmet": "^7.1.0",
+    "jsonwebtoken": "^9.0.0",
+    "uuid": "^9.0.0"
   },
   "devDependencies": {
-    "@types/node": "^22.15.22"
+    "@types/bcryptjs": "^2.4.2",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^4.17.17",
+    "@types/jest": "^29.5.0",
+    "@types/jsonwebtoken": "^9.0.1",
+    "@types/node": "^18.15.11",
+    "@types/uuid": "^9.0.1",
+    "jest": "^29.5.0",
+    "ts-jest": "^29.1.0",
+    "ts-node-dev": "^2.0.0",
+    "typescript": "^5.0.3"
   }
 }

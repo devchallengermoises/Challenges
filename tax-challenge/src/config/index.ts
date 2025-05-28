@@ -1,4 +1,4 @@
-import { Config } from '../interfaces/config.interface';
+import { Config } from '../types/config';
 
 export const config: Config = {
   jwt: {

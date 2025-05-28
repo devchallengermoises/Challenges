@@ -1,73 +1,73 @@
-import { Response } from 'express';
-import { TaxService } from '../services/tax.service';
-import { AuthRequest } from '../middleware/auth.middleware';
-import { InMemoryTaxRepository } from '../repositories/tax.repository';
-import {
-  createTaxRecordHandler,
-  updateTaxRecordHandler,
-  deleteTaxRecordHandler,
-  getTaxRecordsHandler,
-  getTaxRecordByIdHandler
-} from '../handlers/tax.handlers';
+import { Request, Response } from 'express';
+import { TaxController } from '../types/controller';
+import { TaxServiceImpl } from '../services/tax.service';
 
-export class TaxController {
-  private static instance: TaxController;
-  private taxService: TaxService;
+export class TaxControllerImpl implements TaxController {
+  constructor(private readonly taxService: TaxServiceImpl) {}
 
-  private constructor() {
-    const repository = new InMemoryTaxRepository();
-    this.taxService = TaxService.getInstance(repository);
+  async handle(req: Request, res: Response): Promise<void> {
+    res.status(404).json({ error: 'Not found' });
   }
 
-  public static getInstance(): TaxController {
-    if (!TaxController.instance) {
-      TaxController.instance = new TaxController();
-    }
-    return TaxController.instance;
-  }
-
-  public createTaxRecord = async (req: AuthRequest, res: Response): Promise<void> => {
-    const result = await createTaxRecordHandler(this.taxService)(req);
-    if ('error' in result) {
-      res.status(400).json(result);
-    } else {
+  async createTaxRecord(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.taxService.addTaxRecord(req.body);
       res.status(201).json(result);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid input' });
     }
-  };
+  }
 
-  public updateTaxRecord = async (req: AuthRequest, res: Response): Promise<void> => {
-    const result = await updateTaxRecordHandler(this.taxService)(req);
-    if ('error' in result) {
-      res.status(400).json(result);
-    } else {
+  async updateTaxRecord(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.taxService.modifyTaxRecord(req.params.id, req.body);
+      if (!result) {
+        res.status(404).json({ error: 'Record not found' });
+        return;
+      }
       res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid input' });
     }
-  };
+  }
 
-  public deleteTaxRecord = async (req: AuthRequest, res: Response): Promise<void> => {
-    const result = await deleteTaxRecordHandler(this.taxService)(req);
-    if ('error' in result) {
-      res.status(400).json(result);
-    } else {
-      res.status(204).send();
+  async deleteTaxRecord(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.taxService.removeTaxRecord(req.params.id);
+      if (!result) {
+        res.status(404).json({ error: 'Record not found' });
+        return;
+      }
+      res.json({ 
+        message: `Tax record ${req.params.id} has been successfully deleted`,
+        data: result.data
+      });
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid input' });
     }
-  };
+  }
 
-  public getTaxRecords = async (req: AuthRequest, res: Response): Promise<void> => {
-    const result = await getTaxRecordsHandler(this.taxService)(req);
-    if ('error' in result) {
-      res.status(400).json(result);
-    } else {
+  async getTaxRecordById(req: Request, res: Response): Promise<void> {
+    try {
+      const result = await this.taxService.getTaxRecordById(req.params.id);
+      if (!result) {
+        res.status(404).json({ error: 'Record not found' });
+        return;
+      }
       res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid input' });
     }
-  };
+  }
 
-  public getTaxRecordById = async (req: AuthRequest, res: Response): Promise<void> => {
-    const result = await getTaxRecordByIdHandler(this.taxService)(req);
-    if ('error' in result) {
-      res.status(400).json(result);
-    } else {
+  async getTaxRecords(req: Request, res: Response): Promise<void> {
+    try {
+      const page = parseInt(req.query.page as string) || 1;
+      const limit = parseInt(req.query.limit as string) || 10;
+      const result = await this.taxService.getTaxRecords({ page, limit });
       res.json(result);
+    } catch (error) {
+      res.status(400).json({ error: 'Invalid input' });
     }
-  };
+  }
 } 

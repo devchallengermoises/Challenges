@@ -1,90 +1,73 @@
-import { db } from '../db/database';
-import { v4 as uuidv4 } from 'uuid';
 import { TaxRecord, TaxQueryParams, TaxStatus, TaxCategory } from '../types/tax';
-import { ITaxRepository } from '../interfaces/tax.interface';
+import { TaxRepository } from '../services/tax.service';
 
-export class InMemoryTaxRepository implements ITaxRepository {
-  private records = db.taxRecords;
+export class InMemoryTaxRepository implements TaxRepository {
+  private records: TaxRecord[] = [];
+  private lastId: number = 0;
 
-  private binarySearch(id: string): number {
-    let left = 0;
-    let right = this.records.length - 1;
+  constructor() {
+    this.generateInitialRecords();
+  }
 
-    while (left <= right) {
-      const mid = Math.floor((left + right) / 2);
-      if (this.records[mid].id === id) {
-        return mid;
-      }
-      if (this.records[mid].id < id) {
-        left = mid + 1;
-      } else {
-        right = mid - 1;
-      }
+  private generateInitialRecords() {
+    const categories = [TaxCategory.INCOME, TaxCategory.PROPERTY, TaxCategory.SALES, TaxCategory.CORPORATE];
+    const statuses = [TaxStatus.PENDING, TaxStatus.PAID, TaxStatus.OVERDUE];
+    const currentYear = new Date().getFullYear();
+
+    for (let i = 0; i < 50; i++) {
+      const record: TaxRecord = {
+        id: (i + 1).toString(),
+        taxpayerId: `TAX-${Math.floor(Math.random() * 10000)}`,
+        year: currentYear - Math.floor(Math.random() * 3),
+        amount: Math.floor(Math.random() * 10000) + 100,
+        category: categories[Math.floor(Math.random() * categories.length)],
+        status: statuses[Math.floor(Math.random() * statuses.length)],
+        description: `Tax record ${i + 1}`,
+        timestamp: Date.now() - Math.floor(Math.random() * 10000000000)
+      };
+      this.records.push(record);
+      this.lastId = i + 1;
     }
-    return -1;
   }
 
   async create(record: Omit<TaxRecord, 'id' | 'timestamp'>): Promise<TaxRecord> {
+    this.lastId++;
     const newRecord: TaxRecord = {
-      ...record,
-      id: String(this.records.length + 1),
-      timestamp: Date.now()
+      id: this.lastId.toString(),
+      timestamp: Date.now(),
+      ...record
     };
     this.records.push(newRecord);
     return newRecord;
   }
 
   async update(id: string, updates: Partial<TaxRecord>): Promise<TaxRecord | null> {
-    const index = this.binarySearch(id);
+    const index = this.records.findIndex(record => record.id === id);
     if (index === -1) return null;
 
-    this.records[index] = {
-      ...this.records[index],
-      ...updates,
-      timestamp: Date.now()
-    };
-    return this.records[index];
+    const updatedRecord = { ...this.records[index], ...updates };
+    this.records[index] = updatedRecord;
+    return updatedRecord;
   }
 
-  async delete(id: string): Promise<boolean> {
-    const index = this.binarySearch(id);
-    if (index === -1) return false;
+  async delete(id: string): Promise<TaxRecord | null> {
+    const index = this.records.findIndex(record => record.id === id);
+    if (index === -1) return null;
 
+    const deletedRecord = this.records[index];
     this.records.splice(index, 1);
-    return true;
+    return deletedRecord;
   }
 
   async findById(id: string): Promise<TaxRecord | null> {
-    const index = this.binarySearch(id);
-    return index === -1 ? null : this.records[index];
+    return this.records.find(record => record.id === id) || null;
   }
 
   async findAll(params: TaxQueryParams): Promise<{ records: TaxRecord[]; total: number }> {
-    let filtered = [...this.records];
-
-    if (params.year) {
-      filtered = filtered.filter(r => r.year === params.year);
-    }
-    if (params.status) {
-      filtered = filtered.filter(r => r.status === params.status);
-    }
-    if (params.category) {
-      filtered = filtered.filter(r => r.category === params.category);
-    }
-    if (params.startDate) {
-      filtered = filtered.filter(r => r.timestamp >= params.startDate!);
-    }
-    if (params.endDate) {
-      filtered = filtered.filter(r => r.timestamp <= params.endDate!);
-    }
-
-    const start = (params.page - 1) * params.limit;
-    const end = start + params.limit;
-    const paginated = filtered.slice(start, end);
-
-    return {
-      records: paginated,
-      total: filtered.length
-    };
+    const { page = 1, limit = 10 } = params;
+    const start = (page - 1) * limit;
+    const end = start + limit;
+    const records = this.records.slice(start, end);
+    return { records, total: this.records.length };
   }
 } 

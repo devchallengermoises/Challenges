@@ -1,5 +1,5 @@
 import { Request, Response, NextFunction } from 'express';
-import { AuthService } from '../services/auth.service';
+import { AuthServiceImpl } from '../services/auth.service';
 import { InMemoryAuthRepository } from '../repositories/auth.repository';
 
 export interface AuthRequest extends Request {
@@ -12,26 +12,27 @@ export interface AuthRequest extends Request {
 
 const authRepository = new InMemoryAuthRepository();
 
-export const authMiddleware = async (
-  req: AuthRequest,
-  res: Response,
-  next: NextFunction
-): Promise<void> => {
+export const authMiddleware = (req: Request, res: Response, next: NextFunction) => {
   try {
     const authHeader = req.headers.authorization;
     if (!authHeader) {
-      res.status(401).json({ error: 'No token provided', code: 'UNAUTHORIZED' });
-      return;
+      return res.status(401).json({ error: 'No token provided' });
     }
 
     const token = authHeader.split(' ')[1];
-    const authService = AuthService.getInstance(authRepository);
-    const decoded = authService.verifyToken(token);
+    if (!token) {
+      return res.status(401).json({ error: 'Invalid token format' });
+    }
 
-    req.user = decoded;
+    // Get the auth service instance
+    const authService = AuthServiceImpl.getInstance(req.app.get('authRepository'));
+    const payload = authService.verifyToken(token);
+    
+    // Attach user info to request
+    req.user = payload;
     next();
   } catch (error) {
-    res.status(401).json({ error: 'Invalid token', code: 'UNAUTHORIZED' });
+    return res.status(401).json({ error: 'Invalid token' });
   }
 };
 

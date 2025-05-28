@@ -1,16 +1,16 @@
 import { Request, Response } from 'express';
 
-export interface IController {
+export type Controller = {
   handle(req: Request, res: Response): Promise<void>;
 }
 
-export interface IAuthController extends IController {
+export type AuthController = Controller & {
   login(req: Request, res: Response): Promise<void>;
   register(req: Request, res: Response): Promise<void>;
   logout(req: Request, res: Response): Promise<void>;
 }
 
-export interface ITaxController extends IController {
+export type TaxController = Controller & {
   createTaxRecord(req: Request, res: Response): Promise<void>;
   updateTaxRecord(req: Request, res: Response): Promise<void>;
   deleteTaxRecord(req: Request, res: Response): Promise<void>;

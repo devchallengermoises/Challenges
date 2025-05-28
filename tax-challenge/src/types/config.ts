@@ -1,4 +1,4 @@
-export interface Config {
+export type Config = {
   jwt: {
     secret: string;
     expiresIn: string;

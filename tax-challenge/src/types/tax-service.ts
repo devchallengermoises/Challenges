@@ -1,7 +1,7 @@
-import { TaxRecord, TaxQueryParams } from '../types/tax';
-import { ApiResponse } from '../types/response';
+import { TaxRecord, TaxQueryParams } from './tax';
+import { ApiResponse } from './response';
 
-export interface ITaxService {
+export type TaxService = {
   addTaxRecord(record: Omit<TaxRecord, 'id' | 'timestamp'>): Promise<ApiResponse<TaxRecord>>;
   modifyTaxRecord(id: string, updates: Partial<TaxRecord>): Promise<ApiResponse<TaxRecord> | null>;
   removeTaxRecord(id: string): Promise<boolean>;
@@ -9,7 +9,7 @@ export interface ITaxService {
   getTaxRecords(params: TaxQueryParams): Promise<ApiResponse<TaxRecord[]>>;
 }
 
-export interface ITaxRepository {
+export type TaxRepository = {
   create(record: Omit<TaxRecord, 'id' | 'timestamp'>): Promise<TaxRecord>;
   update(id: string, updates: Partial<TaxRecord>): Promise<TaxRecord | null>;
   delete(id: string): Promise<boolean>;
